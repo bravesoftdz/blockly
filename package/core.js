@@ -22,15 +22,28 @@
  * @fileoverview Blockly core module for Node.
  */
 
-'use strict';
-
-var Blockly = require('./blockly_compressed-node');
-
-Blockly.setLocale = function(locale) {
-  Blockly.Msg = Object.assign(locale, Blockly.Msg);
-  if (typeof Blockly.Msg === 'function') {
-    Blockly.Msg = Blockly.Msg();
+(function(root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define([
+      './blockly_compressed-node'
+    ], factory);
+  } else if (typeof exports === 'object') {
+    // CommonJS. Node or CommonJS like environments.
+    module.exports = factory(process.browser ?
+      require('./blockly_compressed') :
+      require('./blockly_compressed-node'));
+  } else {
+    // Browser globals (root is window).
+    root.Blockly = factory(root.Blockly);
   }
-};
+})(this, function(Blockly) {
+  'use strict';
+  
+  // Add a helper method to set the Blockly locale.
+  Blockly.setLocale = function(locale) {
+    Blockly.Msg = Object.assign(Blockly.Msg || {}, locale);
+  };
 
-module.exports = Blockly;
+  return Blockly;
+});

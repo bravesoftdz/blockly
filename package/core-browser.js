@@ -22,15 +22,33 @@
  * @fileoverview Blockly core module for the browser.
  */
 
-'use strict';
-
-var Blockly = require('./blockly_compressed');
-
-Blockly.setLocale = function(locale) {
-  Blockly.Msg = Object.assign(locale, Blockly.Msg);
-  if (typeof Blockly.Msg === 'function') {
-    Blockly.Msg = Blockly.Msg();
+(function(root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define([
+      './blockly_compressed',
+      './msg/en'
+    ], factory);
+  } else if (typeof exports === 'object') {
+    // CommonJS. Node or Webpack.
+    module.exports = factory(
+        require('./blockly_compressed'),
+        require('./msg/en'));
+  } else {
+    // Browser globals (root is window).
+    root.Blockly = factory(root.Blockly, root.Blockly.Msg);
   }
-};
+})(this, function(Blockly, En) {
+  'use strict';
 
-module.exports = Blockly;
+  // Add a helper method to set the Blockly locale.
+  Blockly.setLocale = function(locale) {
+    Blockly.Msg = Object.assign(Blockly.Msg || {}, locale);
+  };
+
+  // Always include the EN locale, otherwise blocks complain
+  // about missing strings when they are first loaded.
+  Blockly.setLocale(En);
+
+  return Blockly;
+});

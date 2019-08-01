@@ -23,22 +23,44 @@
  *               built-in blocks, all the generators and English locale.
  */
 
-'use strict';
+(function(root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define([
+      './core',
+      './msg/en',
+      './blocks',
+      './js',
+      './python',
+      './lua',
+      './dart',
+      './php',
+    ], factory);
+  } else if (typeof exports === 'object') {
+    // CommonJS. Node or CommonJS like environments.
+    const isBrowser = process.browser;
+    const BlocklyCore = isBrowser ?
+      require('./core-browser') : require('./core');
+    const BlocklyBlocks = isBrowser ?
+      require('./blocks-browser') : require('./blocks');
+    module.exports = factory(
+        BlocklyCore,
+        require('./msg/en'),
+        BlocklyBlocks,
+        require('./js'),
+        require('./python'),
+        require('./lua'),
+        require('./dart'),
+        require('./php')
+    );
+  } else {
+    // Browser globals (root is window).
+    root.Blockly = factory(root.Blockly, root.Blockly.Msg);
+  }
+})(this, function(Blockly, En) {
+  'use strict';
 
-var Blockly = require('./core');
+  Blockly.setLocale(En);
 
-Blockly.setLocale(require('./msg/en'));
-
-require('./blocks');
-
-require('./js');
-
-require('./python');
-
-require('./lua');
-
-require('./dart');
-
-require('./php');
-
-module.exports = Blockly;
+  return Blockly;
+});

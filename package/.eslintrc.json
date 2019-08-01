@@ -4,7 +4,9 @@
     },
     "globals": {
         "module": true,
-        "require": true
+        "require": true,
+        "define": true,
+        "process": true
     },
     "extends": "../.eslintrc.json"
 }

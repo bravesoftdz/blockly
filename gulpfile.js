@@ -56,7 +56,7 @@ gulp.task('build', gulp.shell.task([
 // and JavaScript code generation.  If you need another localization or
 // generator language, just copy and edit the srcs. Only one localization
 // language can be included.
-gulp.task('blockly_node_javascript_en', function() {
+gulp.task('blockly_node_javascript_en', function () {
   var srcs = [
     'blockly_compressed.js',
     'blocks_compressed.js',
@@ -66,8 +66,8 @@ gulp.task('blockly_node_javascript_en', function() {
   // Concatenate the sources, appending the module export at the bottom.
   // Override textToDomDocument, providing Node alternative to DOMParser.
   return gulp.src(srcs)
-      .pipe(gulp.concat('blockly_node_javascript_en.js'))
-      .pipe(gulp.insert.append(`
+    .pipe(gulp.concat('blockly_node_javascript_en.js'))
+    .pipe(gulp.insert.append(`
 if (typeof DOMParser !== 'function') {
   var JSDOM = require('jsdom').JSDOM;
   var window = (new JSDOM()).window;
@@ -80,7 +80,7 @@ if (typeof DOMParser !== 'function') {
 }
 if (typeof module === 'object') { module.exports = Blockly; }
 if (typeof window === 'object') { window.Blockly = Blockly; }\n`))
-      .pipe(gulp.dest('.'));
+    .pipe(gulp.dest('.'));
 });
 
 /**
@@ -91,7 +91,7 @@ if (typeof window === 'object') { window.Blockly = Blockly; }\n`))
  */
 // TODO: Only run the necessary phases of the build script for a given change.
 function buildWatchTaskFn(concatTask) {
-  return function() {
+  return function () {
     // Tasks to trigger.
     var tasks = ['build'];
     if (concatTask) {
@@ -173,30 +173,32 @@ gulp.task('typings', () => {
     });
 });
 
-
-var packageDestination = './dist';
+const packageDestination = './dist';
 
 function packageBlockly() {
   return gulp.src('blockly_compressed.js')
-    .pipe(gulp.replace(/goog\.global\s*=\s*this;/, 'goog.global=window'))
-    .pipe(gulp.replace(/Blockly\.utils\.global\s*=\s*this\|\|self;/, 'Blockly.utils.global=window;'))
-    .pipe(gulp.insert.wrap(`
-    /* eslint-disable */
-    module.exports = (function(){`,
-      `Blockly.goog=goog;return Blockly;
-    })()`))
+    .pipe(gulp.umd({
+      namespace: function () { return 'Blockly'; },
+      exports: function () { return 'Blockly'; }
+    }))
     .pipe(gulp.dest(packageDestination));
 };
 
 function packageBlocks() {
   return gulp.src('blocks_compressed.js')
-    .pipe(gulp.insert.wrap(`
-    /* eslint-disable */
-    module.exports = function(Blockly){
-      var goog = Blockly.goog;
-      Blockly.Blocks={};`,
-      `return Blockly.Blocks;
-    }`))
+    .pipe(gulp.insert.prepend(`
+    Blockly.Blocks={};`))
+    .pipe(gulp.umd({
+      dependencies: function () {
+        return [{
+          name: 'Blockly',
+          amd: './core-browser',
+          cjs: './core',
+        }];
+      },
+      namespace: function () { return 'Blockly.Blocks'; },
+      exports: function () { return 'Blockly.Blocks'; }
+    }))
     .pipe(gulp.dest(packageDestination));
 };
 
@@ -204,58 +206,59 @@ function packageBlocklyNode() {
   // Concatenate the sources, appending the module export at the bottom.
   // Override textToDomDocument, providing Node alternative to DOMParser.
   return gulp.src('blockly_compressed.js')
-    .pipe(gulp.replace(/goog\.global\s*=\s*this\|\|self;/, 'goog.global=global;'))
-    .pipe(gulp.replace(/Blockly\.utils\.global\s*=\s*this\|\|self;/, 'Blockly.utils.global=global;'))
     .pipe(gulp.insert.wrap(`
-    /* eslint-disable */
-    var JSDOM = require('jsdom').JSDOM;
-    var window = (new JSDOM()).window;
-    var document = window.document;
-    var Element = window.Element;
-    module.exports = (function(){`,
-      `Blockly.utils.xml.textToDomDocument = function(text) {
-        var jsdom = new JSDOM(text, { contentType: 'text/xml' });
-        return jsdom.window.document;
-      };
-      Blockly.goog=goog;
-      return Blockly;
-    })()`))
+    var self = global;`,
+      `if (typeof DOMParser !== 'function') {
+        var JSDOM = require('jsdom').JSDOM;
+        var window = (new JSDOM()).window;
+        var document = window.document;
+        var Element = window.Element;
+        Blockly.utils.xml.textToDomDocument = function(text) {
+          var jsdom = new JSDOM(text, { contentType: 'text/xml' });
+          return jsdom.window.document;
+        };
+      }`))
+    .pipe(gulp.umd({
+      namespace: function () { return 'Blockly'; },
+      exports: function () { return 'Blockly'; }
+    }))
     .pipe(gulp.rename('blockly_compressed-node.js'))
     .pipe(gulp.dest(packageDestination));
 };
 
-function packageBlocksNode() {
-  return gulp.src('blocks_compressed.js')
-    .pipe(gulp.insert.wrap(`
-    /* eslint-disable */
-    module.exports = function(Blockly){
-      var goog = Blockly.goog;
-      Blockly.Blocks={};`,
-      `return Blockly.Blocks;
-    }`))
-    .pipe(gulp.rename('blocks_compressed-node.js'))
-    .pipe(gulp.dest(packageDestination));
-};
-
-function packageLang(file, lang) {
+function packageGenerator(file, rename, generator) {
   return gulp.src(file)
-    .pipe(gulp.insert.wrap(`
-    /* eslint-disable */
-    module.exports = function(Blockly){`,
-      `return Blockly.${lang};
-    }`))
+    .pipe(gulp.umd({
+      dependencies: function () {
+        return [{
+          name: 'Blockly',
+          amd: './core-browser',
+          cjs: './core',
+        }];
+      },
+      namespace: function () { return `Blockly.${generator}`; },
+      exports: function () { return `Blockly.${generator}`; }
+    }))
+    .pipe(gulp.rename(rename))
     .pipe(gulp.dest(packageDestination));
 };
 
-function packageMsg() {
+function packageLocales() {
   return gulp.src('msg/js/*.js')
     .pipe(gulp.replace(/goog\.[^\n]+/g, ''))
-    .pipe(gulp.insert.wrap(`
-    /* eslint-disable */
-    var Blockly = {};Blockly.Msg={};
-    module.exports = function(){`,
-      `return Blockly.Msg;
-    }`))
+    .pipe(gulp.insert.prepend(`
+    var Blockly = {};Blockly.Msg={};`))
+    .pipe(gulp.umd({
+      dependencies: function () {
+        return [{
+          name: 'Blockly',
+          amd: '../core-browser',
+          cjs: '../core',
+        }];
+      },
+      namespace: function () { return 'Blockly.Msg'; },
+      exports: function () { return 'Blockly.Msg'; }
+    }))
     .pipe(gulp.dest(`${packageDestination}/msg`));
 };
 
@@ -267,19 +270,15 @@ function packageMedia() {
 function packageUMD() {
   var srcs = [
     'blockly_compressed.js',
+    'msg/js/en.js',
     'blocks_compressed.js',
-    'javascript_compressed.js',
-    'msg/js/en.js'
+    'javascript_compressed.js'
   ];
   return gulp.src(srcs)
     .pipe(gulp.concat('blockly.min.js'))
     .pipe(gulp.umd({
-      namespace: function() {
-        return 'Blockly';
-      },
-      exports: function() {
-        return 'Blockly';
-      }
+      namespace: function () { return 'Blockly'; },
+      exports: function () { return 'Blockly'; }
     }))
     .pipe(gulp.dest(`${packageDestination}`))
 };
@@ -297,15 +296,14 @@ function packageDTS() {
 gulp.task('package-blockly', packageBlockly);
 gulp.task('package-blocks', packageBlocks);
 gulp.task('package-blockly-node', packageBlocklyNode);
-gulp.task('package-blocks-node', packageBlocksNode);
 
-gulp.task('package-javascript', () => packageLang('javascript_compressed.js', 'JavaScript'));
-gulp.task('package-python', () => packageLang('python_compressed.js', 'Python'));
-gulp.task('package-lua', () => packageLang('lua_compressed.js', 'Lua'));
-gulp.task('package-dart', () => packageLang('dart_compressed.js', 'Dart'));
-gulp.task('package-php', () => packageLang('php_compressed.js', 'PHP'));
+gulp.task('package-javascript', () => packageGenerator('javascript_compressed.js', 'js.js', 'JavaScript'));
+gulp.task('package-python', () => packageGenerator('python_compressed.js', 'python.js', 'Python'));
+gulp.task('package-lua', () => packageGenerator('lua_compressed.js', 'lua.js', 'Lua'));
+gulp.task('package-dart', () => packageGenerator('dart_compressed.js', 'dart.js', 'Dart'));
+gulp.task('package-php', () => packageGenerator('php_compressed.js', 'php.js', 'PHP'));
 
-gulp.task('package-msg', packageMsg);
+gulp.task('package-locale', packageLocales);
 gulp.task('package-media', packageMedia);
 
 gulp.task('package-umd', packageUMD);
@@ -317,21 +315,20 @@ gulp.task('package', gulp.parallel(
   'package-blockly',
   'package-blocks',
   'package-blockly-node',
-  'package-blocks-node',
   'package-javascript',
   'package-python',
   'package-lua',
   'package-dart',
   'package-php',
-  'package-msg',
+  'package-locale',
   'package-media',
   'package-umd',
   'package-json',
-  'package-dts'
-), () => {
-  return gulp.src('./package/*')
-    .pipe(gulp.dest(packageDestination));
-});
+  'package-dts',
+  () => {
+    return gulp.src('./package/*')
+      .pipe(gulp.dest(packageDestination));
+  }));
 
 // The release task prepares Blockly for release
 // It rebuilts the Blockly compressed files and updates the TypeScript

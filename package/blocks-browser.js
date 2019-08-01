@@ -19,13 +19,32 @@
  */
 
 /**
- * @fileoverview Blockly built-in Blocks for the browser.
+ * @fileoverview Blockly built-in Blocks.
  */
 
-'use strict';
-
-var Blockly = require('./core');
-
-Blockly.Blocks = Object.assign(Blockly.Blocks, require('./blocks_compressed')(Blockly));
-
-module.exports = Blockly.Blocks;
+(function(root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define([
+      './core-browser',
+      './blocks_compressed'
+    ], factory);
+  } else if (typeof exports === 'object') {
+    // CommonJS. Node or Webpack.
+    module.exports = factory(
+        require('./core-browser'),
+        require('./blocks_compressed')
+    );
+  } else {
+    root.Blockly.Blocks = factory(root.Blockly, root.Blockly.Blocks);
+    // Browser globals (root is window).
+  }
+})(this, function(Blockly, BlocklyBlocks) {
+  'use strict';
+  
+  // Make sure we are not override Blockly.Blocks with the built in blocks
+  // but instead, extending it.
+  Blockly.Blocks = Object.assign(Blockly.Blocks, BlocklyBlocks);
+  
+  return Blockly.Blocks;
+});

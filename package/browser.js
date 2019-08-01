@@ -23,14 +23,31 @@
  *               built-in blocks, JavaScript generator and English locale.
  */
 
-'use strict';
+(function(root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define([
+      './core-browser',
+      './msg/en',
+      './blocks-browser',
+      './js',
+    ], factory);
+  } else if (typeof exports === 'object') {
+    // CommonJS. Node or Webpack.
+    module.exports = factory(
+        require('./core-browser'),
+        require('./msg/en'),
+        require('./blocks-browser'),
+        require('./js')
+    );
+  } else {
+    // Browser globals (root is window).
+    root.Blockly = factory(root.Blockly, root.Blockly.Msg);
+  }
+})(this, function(Blockly, En) {
+  'use strict';
 
-var Blockly = require('./core');
+  Blockly.setLocale(En);
 
-Blockly.setLocale(require('./msg/en'));
-
-require('./blocks');
-
-require('./js');
-
-module.exports = Blockly;
+  return Blockly;
+});

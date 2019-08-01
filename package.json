@@ -25,7 +25,6 @@
     "test": "tests/run_all_tests.sh"
   },
   "main": "./index.js",
-  "module": "./index.js",
   "umd": "./blockly.min.js",
   "types": "./blockly.d.ts",
   "browser": {
