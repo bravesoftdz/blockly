@@ -29,7 +29,7 @@
     define([
       './core-browser',
       './msg/en',
-      './blocks-browser',
+      './blocks',
       './js',
     ], factory);
   } else if (typeof exports === 'object') {
@@ -37,7 +37,7 @@
     module.exports = factory(
         require('./core-browser'),
         require('./msg/en'),
-        require('./blocks-browser'),
+        require('./blocks'),
         require('./js')
     );
   } else {
@@ -47,6 +47,7 @@
 })(this, function(Blockly, En) {
   'use strict';
 
+  // Include the EN Locale by default.
   Blockly.setLocale(En);
 
   return Blockly;

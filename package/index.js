@@ -41,12 +41,10 @@
     const isBrowser = process.browser;
     const BlocklyCore = isBrowser ?
       require('./core-browser') : require('./core');
-    const BlocklyBlocks = isBrowser ?
-      require('./blocks-browser') : require('./blocks');
     module.exports = factory(
         BlocklyCore,
         require('./msg/en'),
-        BlocklyBlocks,
+        require('./blocks'),
         require('./js'),
         require('./python'),
         require('./lua'),

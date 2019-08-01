@@ -199,6 +199,8 @@ function packageBlocks() {
       namespace: function () { return 'Blockly.Blocks'; },
       exports: function () { return 'Blockly.Blocks'; }
     }))
+    .pipe(gulp.dest(packageDestination))
+    .pipe(gulp.rename('blocks.js'))
     .pipe(gulp.dest(packageDestination));
 };
 
@@ -239,6 +241,7 @@ function packageGenerator(file, rename, generator) {
       namespace: function () { return `Blockly.${generator}`; },
       exports: function () { return `Blockly.${generator}`; }
     }))
+    .pipe(gulp.dest(packageDestination))
     .pipe(gulp.rename(rename))
     .pipe(gulp.dest(packageDestination));
 };

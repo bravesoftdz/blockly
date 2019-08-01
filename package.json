@@ -29,8 +29,7 @@
   "types": "./blockly.d.ts",
   "browser": {
     "./index.js": "./browser.js",
-    "./core.js": "./core-browser.js",
-    "./blocks.js": "./blocks-browser.js"
+    "./core.js": "./core-browser.js"
   },
   "license": "Apache-2.0",
   "private": true,

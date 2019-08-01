@@ -26,29 +26,22 @@
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module.
     define([
-      './blockly_compressed',
-      './msg/en'
+      './blockly_compressed'
     ], factory);
   } else if (typeof exports === 'object') {
     // CommonJS. Node or Webpack.
-    module.exports = factory(
-        require('./blockly_compressed'),
-        require('./msg/en'));
+    module.exports = factory(require('./blockly_compressed'));
   } else {
     // Browser globals (root is window).
-    root.Blockly = factory(root.Blockly, root.Blockly.Msg);
+    root.Blockly = factory(root.Blockly);
   }
-})(this, function(Blockly, En) {
+})(this, function(Blockly) {
   'use strict';
 
   // Add a helper method to set the Blockly locale.
   Blockly.setLocale = function(locale) {
     Blockly.Msg = Object.assign(Blockly.Msg || {}, locale);
   };
-
-  // Always include the EN locale, otherwise blocks complain
-  // about missing strings when they are first loaded.
-  Blockly.setLocale(En);
 
   return Blockly;
 });
