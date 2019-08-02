@@ -22,7 +22,7 @@ npm install blockly
 ## Example Usage
 
 ```js
-var Blockly = require('blockly');
+import Blockly from 'blockly';
 
 Blockly.inject('blocklyDiv', {
     ...
