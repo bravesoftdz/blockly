@@ -19,8 +19,14 @@
  */
 
 /**
- * @fileoverview Blockly module.
+ * @fileoverview Blockly core module for Node. It includes blockly-node.js
+ *               and adds a helper method for setting the locale.
  */
 
 /* eslint-disable */
 'use strict';
+
+// Add a helper method to set the Blockly locale.
+Blockly.setLocale = function(locale) {
+  Blockly.Msg = Object.assign(Blockly.Msg || {}, locale);
+};

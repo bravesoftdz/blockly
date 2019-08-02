@@ -19,8 +19,16 @@
  */
 
 /**
- * @fileoverview Blockly module.
+ * @fileoverview Blockly module for the browser. It includes Blockly core,
+ *               built-in blocks, JavaScript generator and the English locale.
  */
 
 /* eslint-disable */
 'use strict';
+
+// Include the EN Locale by default.
+Blockly.setLocale(En);
+
+Blockly.Blocks = Object.assign(Blockly.Blocks, BlocklyBlocks);
+
+Blockly.JavaScript = BlocklyJS;
