@@ -161,7 +161,12 @@ Blockly.FieldTextInput.prototype.render_ = function() {
   // This logic is done in render_ rather than doValueInvalid_ or
   // doValueUpdate_ so that the code is more centralized.
   if (this.isBeingEdited_) {
-    this.resizeEditor_();
+    // Force a browser reflow before resizing the input widget to give the
+    // the browser a chance to update the field width. See issue #2777.
+    var field = this;
+    setTimeout(function(){
+      field.resizeEditor_();
+    }, 0);
     if (!this.isTextValid_) {
       Blockly.utils.dom.addClass(this.htmlInput_, 'blocklyInvalidInput');
     } else {
